@@ -84,7 +84,7 @@ const Start = ({ navigation }) => {
             onPress={() =>
               navigation.navigate("Chat", {
                 name: name ? name : "User",
-                backgroundColor: backgroundColor ? backgroundColor : "white",
+                backgroundColor: backgroundColor ? backgroundColor : "#ECF4F3",
               })
             }
           >
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   backgroundImg: {
     flex: 1,
     // fallback:
-    backgroundColor: "#ECF4F3",
+    backgroundColor: "#FFB6B9",
   },
   container: {
     flex: 1,

@@ -9,6 +9,7 @@ import {
   Day,
   ChatFooter,
 } from "react-native-gifted-chat";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 // define Chat component
 const Chat = ({ route, navigation }) => {
@@ -81,13 +82,14 @@ const Chat = ({ route, navigation }) => {
   // customize send btn
   const renderSend = (props) => {
     return (
-      <Send
-        {...props}
-        containerStyle={{ borderWidth: 0, marginRight: 10 }}
-        textStyle={{
-          color: "#716F81",
-        }}
-      />
+      <Send {...props}>
+        <Ionicons
+          name="md-send"
+          size={20}
+          color="#716F81"
+          style={{ marginRight: 10, marginTop: 28 }}
+        />
+      </Send>
     );
   };
 
@@ -116,7 +118,7 @@ const Chat = ({ route, navigation }) => {
   };
 
   // add footer space
-  renderChatFooter = (props) => {
+  renderChatFooter = () => {
     return <View style={{ height: 30 }}></View>;
   };
 
@@ -127,7 +129,6 @@ const Chat = ({ route, navigation }) => {
         messages={messages}
         renderInputToolbar={renderInputToolbar}
         renderBubble={renderBubble}
-        renderSend={renderSend}
         renderSystemMessage={renderSystemMessage}
         renderDay={renderDay}
         alwaysShowSend
@@ -137,6 +138,7 @@ const Chat = ({ route, navigation }) => {
           _id: 1,
           name,
         }}
+        renderSend={renderSend}
       />
       {/*Fix keyboard hides the message input field on Android*/}
       {Platform.OS === "android" ? (
@@ -160,8 +162,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     marginBottom: 15,
-    paddingLeft: 5,
+    paddingLeft: 10,
     borderRadius: 25,
+    height: 47,
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
 });
 
