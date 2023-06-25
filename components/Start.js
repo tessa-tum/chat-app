@@ -7,13 +7,34 @@ import {
   TouchableOpacity,
   View,
   KeyboardAvoidingView,
+  Alert,
+  Image,
 } from "react-native";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 // define Start component
 const Start = ({ navigation }) => {
-  //create state for user's input text and color choice
-  const [name, setName] = useState("");
-  const [backgroundColor, setBackgroundColor] = useState("");
+  const auth = getAuth(); // return authentication handle of Firebase
+  const [name, setName] = useState(""); // create state for user's input text and color choice
+  const [backgroundColor, setBackgroundColor] = useState(""); // create state for user's bgcolor choice
+
+  // allow user to sign-in anonymously
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then((result) => {
+        // pass navigation as prop from App.js Stack.Navigator
+        // define 2nd parameter as object that represents the chosen data
+        navigation.navigate("Chat", {
+          userID: result.user.uid,
+          name: name,
+          backgroundColor: backgroundColor,
+        });
+        Alert.alert("Signed in successfully!");
+      })
+      .catch((error) => {
+        Alert.alert("Unable to sign in, try again later.");
+      });
+  };
 
   // render Start component
   return (
@@ -24,15 +45,20 @@ const Start = ({ navigation }) => {
     >
       <View style={styles.container}>
         <Text style={styles.appTitle}>Let's chat!</Text>
-
+        {/* name input field */}
         <View style={styles.contentWrapper}>
-          {/* text input for username*/}
-          <TextInput
-            style={styles.inputText}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your name"
-          />
+          <View style={styles.inputWrapper}>
+            <Image
+              style={styles.inputIcon}
+              source={require("../assets/user-icon.png")}
+            ></Image>
+            <TextInput
+              style={styles.inputText}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your name"
+            />
+          </View>
           {/* color choice headline and buttons */}
           <View>
             <Text style={styles.colorChoiceHeadline}>
@@ -81,12 +107,8 @@ const Start = ({ navigation }) => {
             accessibilityHint="Navigates to the chat."
             accessibilityRole="button"
             style={styles.submitBtn}
-            onPress={() =>
-              navigation.navigate("Chat", {
-                name: name ? name : "User",
-                backgroundColor: backgroundColor ? backgroundColor : "#ECF4F3",
-              })
-            }
+            // onPress activates navigator and navigates to defined screen 'Chat'
+            onPress={signInUser}
           >
             <Text style={styles.submitBtnText}>Start chatting</Text>
           </TouchableOpacity>
@@ -133,14 +155,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  inputText: {
+  inputWrapper: {
     borderWidth: 0.5,
     borderColor: "#B2B2B2",
+    flexDirection: "row",
+    padding: 16,
+    width: "88%",
+  },
+  inputText: {
     color: "#716F81",
     fontSize: 16,
     fontWeight: "300",
-    padding: 15,
-    width: "88%",
+  },
+  inputIcon: {
+    height: 30,
+    opacity: 0.5,
+    width: 30,
+    marginRight: 10,
   },
   colorChoiceHeadline: {
     color: "#716F81",

@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, View, Platform, KeyboardAvoidingView } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Platform,
+  KeyboardAvoidingView,
+  Alert,
+} from "react-native";
 import {
   GiftedChat,
   Bubble,
@@ -10,46 +16,54 @@ import {
   ChatFooter,
 } from "react-native-gifted-chat";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+} from "firebase/firestore";
 
 // define Chat component
-const Chat = ({ route, navigation }) => {
-  // extract name and color from route params passed through props
-  const { name, backgroundColor } = route.params;
-
+const Chat = ({ route, navigation, db }) => {
+  // extract name, bgcolor and userID from route params
+  const { name, backgroundColor, userID } = route.params; 
   // set state for messages using useState hook
   const [messages, setMessages] = useState([]);
 
-  // set title of the chat room after component mounts
-  // set initial message and system message
+  // fetch messages from Firestore database in real-time
+  // function executes when component is mounted or updated
   useEffect(() => {
     navigation.setOptions({ title: name });
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello developer",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "React Native",
-          avatar: "https://placeimg.com/140/140/any",
-        },
-      },
-      {
-        _id: 2,
-        text: "You have entered the chat",
-        createdAt: new Date(),
-        system: true,
-      },
-    ]);
+    // define query conditions for fetching messages (by their creation date in descending order)
+    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+    // create the onSnapshot() listener on a query that targets the messages collection (executes in real-time)
+    const unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
+      let newMessages = [];
+      documentsSnapshot.forEach((doc) => {
+        newMessages.push({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: new Date(doc.data().createdAt.toMillis()),
+        });
+      });
+      setMessages(newMessages);
+    });
+
+    // unsubscribe from real-time updates when the component will be unmounted
+    return () => {
+      if (unsubscribeMessages) unsubscribeMessages();
+    };
   }, []);
 
-  // handle message sending, update messages state
+  // add new message to Firestore collection
   const onSend = (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
+    addDoc(collection(db, "messages"), newMessages[0]);
   };
 
+  // customizations
+
+  // customize InputToolbar
   const renderInputToolbar = (props) => {
     return <InputToolbar {...props} containerStyle={styles.inputToolbar} />;
   };
@@ -126,25 +140,24 @@ const Chat = ({ route, navigation }) => {
   return (
     <View style={[{ backgroundColor: backgroundColor }, styles.container]}>
       <GiftedChat
-        messages={messages}
         renderInputToolbar={renderInputToolbar}
         renderBubble={renderBubble}
-        renderSystemMessage={renderSystemMessage}
+        renderSend={renderSend}
         renderDay={renderDay}
-        alwaysShowSend
         renderChatFooter={renderChatFooter}
+        alwaysShowSend
+        messages={messages}
         onSend={(messages) => onSend(messages)}
         user={{
-          _id: 1,
-          name,
+          _id: userID,
+          name: name,
         }}
-        renderSend={renderSend}
       />
-      {/*Fix keyboard hides the message input field on Android*/}
+      {/*fix keyboard hides the message input field on Android*/}
       {Platform.OS === "android" ? (
         <KeyboardAvoidingView behavior="height" />
       ) : null}
-      {/*Fix keyboard hides the message input field on iOS*/}
+      {/*fix keyboard hides the message input field on iOS*/}
       {Platform.OS === "ios" ? (
         <KeyboardAvoidingView behavior="padding" />
       ) : null}
