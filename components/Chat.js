@@ -1,3 +1,4 @@
+// import from react
 import { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -16,6 +17,9 @@ import {
   ChatFooter,
 } from "react-native-gifted-chat";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// import from firebase
 import {
   collection,
   addDoc,
@@ -24,51 +28,99 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-// define Chat component
-const Chat = ({ route, navigation, db }) => {
+const Chat = ({ route, navigation, db, isConnected }) => {
   // extract name, bgcolor and userID from route params
-  const { name, backgroundColor, userID } = route.params; 
   // set state for messages using useState hook
+  const { name, backgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
 
-  // fetch messages from Firestore database in real-time
-  // function executes when component is mounted or updated
-  useEffect(() => {
-    navigation.setOptions({ title: name });
-    // define query conditions for fetching messages (by their creation date in descending order)
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    // create the onSnapshot() listener on a query that targets the messages collection (executes in real-time)
-    const unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
-      let newMessages = [];
-      documentsSnapshot.forEach((doc) => {
-        newMessages.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: new Date(doc.data().createdAt.toMillis()),
-        });
-      });
-      setMessages(newMessages);
-    });
+  let unsubscribeMessages;
 
-    // unsubscribe from real-time updates when the component will be unmounted
+  // fetch messages from Firestore database in real-time
+  useEffect(() => {
+    if (isConnected === true) {
+      // check internet connection
+      navigation.setOptions({ title: name });
+
+      // unregister current onSnapshot() listener to avoid registering multiple listeners when useEffect code is re-executed
+      if (unsubscribeMessages) unsubscribeMessages();
+      unsubscribeMessages = null;
+
+      // define query conditions for fetching messages (by their creation date in descending order)
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+
+      // create the onSnapshot() listener on a query that targets the messages collection
+      unsubscribeMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach((doc) => {
+          newMessages.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis()),
+          });
+        });
+
+        // cache messages, update state
+        cacheMessages(newMessages);
+        setMessages(newMessages);
+      });
+    } else {
+      // load cached messages if there is no internet connection
+      loadCachedMessages();
+    }
+
+    // unsubscribe from real-time updates when connectivity state changes
     return () => {
       if (unsubscribeMessages) unsubscribeMessages();
     };
-  }, []);
+  }, [isConnected]);
 
-  // add new message to Firestore collection
+  // load messages from AsyncStorage
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem("messages")) || [];
+    setMessages(JSON.parse(cachedMessages));
+  };
+
+  // cache messages in AsyncStorage
+  const cacheMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem("messages", JSON.stringify(messagesToCache));
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  // add messages to Firestore database
+  const addMessage = async (newMessage) => {
+    try {
+      const newMessageRef = await addDoc(
+        collection(db, "messages"),
+        newMessage[0]
+      );
+
+      if (!newMessageRef.id) {
+        Alert.alert("Unable to add message. Please try again later.");
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  // send new messages
   const onSend = (newMessages) => {
-    addDoc(collection(db, "messages"), newMessages[0]);
+    addMessage(newMessages);
   };
 
   // customizations
 
-  // customize InputToolbar
+  // input toolbar
   const renderInputToolbar = (props) => {
-    return <InputToolbar {...props} containerStyle={styles.inputToolbar} />;
+    if (isConnected)
+      return <InputToolbar {...props} containerStyle={styles.inputToolbar} />;
+    else return null;
   };
 
-  // customize chat bubbles
+  // chat bubbles
   const renderBubble = (props) => {
     return (
       <Bubble
@@ -93,7 +145,7 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
-  // customize send btn
+  // send btn
   const renderSend = (props) => {
     return (
       <Send {...props}>
@@ -107,7 +159,7 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
-  // customize welcome system message
+  // system message
   const renderSystemMessage = (props) => {
     return (
       <SystemMessage
@@ -119,7 +171,7 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
-  // customize date display
+  // date display
   const renderDay = (props) => {
     return (
       <Day
@@ -131,12 +183,13 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
-  // add footer space
+  // add chat footer space
   renderChatFooter = () => {
     return <View style={{ height: 30 }}></View>;
   };
 
   // render Chat component
+
   return (
     <View style={[{ backgroundColor: backgroundColor }, styles.container]}>
       <GiftedChat
