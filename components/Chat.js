@@ -1,36 +1,18 @@
 // import from react
 import { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Platform,
-  KeyboardAvoidingView,
-  Alert,
-} from "react-native";
-import {
-  GiftedChat,
-  Bubble,
-  InputToolbar,
-  Send,
-  SystemMessage,
-  Day,
-  ChatFooter,
-} from "react-native-gifted-chat";
+import { StyleSheet, View, Platform, KeyboardAvoidingView, Alert } from "react-native";
+import { GiftedChat, Bubble, InputToolbar, Send, SystemMessage, Day, ChatFooter } from "react-native-gifted-chat";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import MapView from "react-native-maps";
 // import from firebase
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-} from "firebase/firestore";
+import { collection, addDoc, onSnapshot, query, orderBy } from "firebase/firestore";
+// import components
+import CustomActions from "./CustomActions";
 
-const Chat = ({ route, navigation, db, isConnected }) => {
+const Chat = ({ route, navigation, db, isConnected, storage }) => {
   // extract name, bgcolor and userID from route params
-  // set state for messages using useState hook
+  // set state for messages
   const { name, backgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
 
@@ -39,7 +21,6 @@ const Chat = ({ route, navigation, db, isConnected }) => {
   // fetch messages from Firestore database in real-time
   useEffect(() => {
     if (isConnected === true) {
-      // check internet connection
       navigation.setOptions({ title: name });
 
       // unregister current onSnapshot() listener to avoid registering multiple listeners when useEffect code is re-executed
@@ -69,7 +50,7 @@ const Chat = ({ route, navigation, db, isConnected }) => {
       loadCachedMessages();
     }
 
-    // unsubscribe from real-time updates when connectivity state changes
+    // unsubscribe from real-time updates when connectivity state changes (clean-up)
     return () => {
       if (unsubscribeMessages) unsubscribeMessages();
     };
@@ -90,7 +71,7 @@ const Chat = ({ route, navigation, db, isConnected }) => {
     }
   };
 
-  // add messages to Firestore database
+  // add messages to firestore db
   const addMessage = async (newMessage) => {
     try {
       const newMessageRef = await addDoc(
@@ -120,6 +101,11 @@ const Chat = ({ route, navigation, db, isConnected }) => {
     else return null;
   };
 
+  // custom actions btn (opens actions sheet)
+  const renderCustomActions = (props) => {
+    return <CustomActions storage={storage} {...props} />;
+  };
+
   // chat bubbles
   const renderBubble = (props) => {
     return (
@@ -145,7 +131,7 @@ const Chat = ({ route, navigation, db, isConnected }) => {
     );
   };
 
-  // send btn
+  // send btn for messages
   const renderSend = (props) => {
     return (
       <Send {...props}>
@@ -183,20 +169,46 @@ const Chat = ({ route, navigation, db, isConnected }) => {
     );
   };
 
-  // add chat footer space
+  // chat footer
   renderChatFooter = () => {
     return <View style={{ height: 30 }}></View>;
   };
 
-  // render Chat component
+  // MapView for location data
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
 
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{
+            width: 150,
+            height: 100,
+            borderRadius: 13,
+            margin: 3,
+          }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  };
+
+  // render Chat component
   return (
     <View style={[{ backgroundColor: backgroundColor }, styles.container]}>
       <GiftedChat
         renderInputToolbar={renderInputToolbar}
         renderBubble={renderBubble}
         renderSend={renderSend}
+        renderActions={renderCustomActions}
         renderDay={renderDay}
+        renderCustomView={renderCustomView}
         renderChatFooter={renderChatFooter}
         alwaysShowSend
         messages={messages}
@@ -206,11 +218,11 @@ const Chat = ({ route, navigation, db, isConnected }) => {
           name: name,
         }}
       />
-      {/*fix keyboard hides the message input field on Android*/}
+      {/* fix keyboard hides the message input field on Android */}
       {Platform.OS === "android" ? (
         <KeyboardAvoidingView behavior="height" />
       ) : null}
-      {/*fix keyboard hides the message input field on iOS*/}
+      {/* fix keyboard hides the message input field on iOS */}
       {Platform.OS === "ios" ? (
         <KeyboardAvoidingView behavior="padding" />
       ) : null}
@@ -219,7 +231,6 @@ const Chat = ({ route, navigation, db, isConnected }) => {
 };
 
 // styles
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

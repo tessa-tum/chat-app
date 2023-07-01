@@ -1,30 +1,21 @@
 // import from react
 import { useState } from "react";
-import {
-  StyleSheet,
-  ImageBackground,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  KeyboardAvoidingView,
-  Alert,
-  Image,
-} from "react-native";
+import { StyleSheet, ImageBackground, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, Alert, Image } from "react-native";
 // import from firebase
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 const Start = ({ navigation }) => {
-  const auth = getAuth(); // return authentication handle of Firebase
-  const [name, setName] = useState(""); // create state for user's input text and color choice
-  const [backgroundColor, setBackgroundColor] = useState(""); // create state for user's bgcolor choice
+  // return firebase authentication handle
+  const auth = getAuth();
+  // set state for user choices
+  const [name, setName] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("");
 
   // allow user to sign-in anonymously
   const signInUser = () => {
     signInAnonymously(auth)
       .then((result) => {
-        // pass navigation as prop from App.js Stack.Navigator
-        // define 2nd parameter as object that represents the chosen data
+        // define 2nd function parameter as object that represents the chosen user data
         navigation.navigate("Chat", {
           userID: result.user.uid,
           name: name,
@@ -45,11 +36,12 @@ const Start = ({ navigation }) => {
       style={styles.backgroundImg}
     >
       <View style={styles.container}>
-      <View style={styles.appTitleContainer}>
-        <Text style={styles.appTitle}>Let's</Text> 
-        <Text style={styles.appTitle}>chat</Text>
+        {/* app title */}
+        <View style={styles.appTitleContainer}>
+          <Text style={styles.appTitle}>Let's</Text>
+          <Text style={styles.appTitle}>chat</Text>
         </View>
-        {/* name input field */}
+        {/* user info input field */}
         <View style={styles.contentWrapper}>
           <View style={styles.inputWrapper}>
             <Image
@@ -104,24 +96,24 @@ const Start = ({ navigation }) => {
               ></TouchableOpacity>
             </View>
           </View>
-          {/* submit button, nav to chat view */}
+          {/* submit btn, nav to chat view */}
           <TouchableOpacity
             accessible={true}
             accessibilityLabel="Press to start chatting"
             accessibilityHint="Navigates to the chat."
             accessibilityRole="button"
             style={styles.submitBtn}
-            // onPress activates navigator and navigates to defined screen 'Chat'
+            // onPress activates navigator and navigates to defined screen "Chat"
             onPress={signInUser}
           >
             <Text style={styles.submitBtnText}>Start chatting</Text>
           </TouchableOpacity>
         </View>
-        {/*Fix keyboard hides the message input field on Android*/}
+        {/* fix keyboard hides the message input field on Android */}
         {Platform.OS === "android" ? (
           <KeyboardAvoidingView behavior="height" />
         ) : null}
-        {/*Fix keyboard hides the message input field on iOS*/}
+        {/* fix keyboard hides the message input field on iOS */}
         {Platform.OS === "ios" ? (
           <KeyboardAvoidingView behavior="padding" />
         ) : null}
@@ -131,7 +123,6 @@ const Start = ({ navigation }) => {
 };
 
 // styles
-
 const styles = StyleSheet.create({
   backgroundImg: {
     flex: 1,

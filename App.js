@@ -4,15 +4,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useEffect } from "react";
 import { Alert } from "react-native";
-
 // import from firebase
 import { initializeApp } from "firebase/app";
-import {
-  getFirestore,
-  disableNetwork,
-  enableNetwork,
-} from "firebase/firestore";
-
+import { getFirestore, disableNetwork, enableNetwork } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 // import screens
 import Start from "./components/Start";
 import Chat from "./components/Chat";
@@ -21,7 +16,7 @@ import Chat from "./components/Chat";
 const Stack = createNativeStackNavigator();
 
 const App = () => {
-  // check for network connectivity state
+  // check network connectivity
   const connectionStatus = useNetInfo();
 
   // add firebase config
@@ -34,14 +29,13 @@ const App = () => {
     appId: "1:993531059809:web:423630be863bd3e2581420",
   };
 
-  // initialize firebase
+  // initialize firebase, cloud firestore db and storage
   const app = initializeApp(firebaseConfig);
-
-  // initialize cloud firestore and get reference to the service
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
-  // check for network connectivity state in real-time
-  // stop Firebase from attempting to re-connect to Firestore
+  // check network connectivity in real-time
+  // stop firebase from re-connecting to firestore (default)
   useEffect(() => {
     if (connectionStatus.isConnected === false) {
       Alert.alert("Connection lost!");
@@ -49,21 +43,19 @@ const App = () => {
     } else if (connectionStatus.isConnected === true) {
       enableNetwork(db);
     }
-  }, [connectionStatus.isConnected]); // if the value of the dependency array changes, the useEffect code will be re-executed
+  }, [connectionStatus.isConnected]); // if value of dependency array changes, useEffect will be re-executed
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        // first screen to be loaded when starting the app
-        initialRouteName="Start"
-      >
+      <Stack.Navigator initialRouteName="Start">
         <Stack.Screen name="Start" component={Start} />
         <Stack.Screen name="Chat">
-          {/* passes props to the chat component */}
+          {/* pass props to the chat component */}
           {(props) => (
             <Chat
               isConnected={connectionStatus.isConnected}
               db={db}
+              storage={storage}
               {...props}
             />
           )}
