@@ -22,7 +22,7 @@ A chat app for mobile devices using React Native. The app will provide users wit
 
 ## Interface
 
-![Screenshot of main view](https://github.com/tessa-tum/chat-app/blob/main/src/assets/scrnshot-start-screen-.PNG)
+![Screenshot of main view](https://github.com/tessa-tum/chat-app/blob/main/assets/scrnshot-start-screen-.PNG)
 
 ## Project deliverables
 
