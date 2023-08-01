@@ -1,38 +1,59 @@
 # Chat app
 
-## Project description
+## Objective
 
 A chat app for mobile devices using React Native. The app will provide users with a chat interface and options to share images and their location.
 
-## Key features
+## Visuals
+
+Mobile view of home page
+
+![Screenshot of main view](https://github.com/tessa-tum/chat-app/blob/main/assets/scrnshot-start-screen-.PNG)
+
+## Built with
+
+### Languages
+
+- Javascript, JSX
+
+### Framework, Libraries, Tools
+
+- React Native
+  - React navigation
+- Expo
+-   Expo CLI and Expo Go App
+- Gifted Chat
+- Google Firebase / Firestore
+- Android Studio (for testing)
+
+### Global
+- `expo-CLI` to work with Expo
+
+### Dependencies
+- `expo` to set up, develop and test the native app
+- `expo-image-picker` to gain access to native image library/camera 
+- `expo-location` to gain access to native geo location
+- `firebase` to enable real-time chat/saving of messages/images and anonymous sign-in
+- `react`
+- `react-native` 
+- `react-native-gifted-chat` as library for developing chat apps
+- `react-native-safe-area-context`
+- `react-native-screens`
+- `react-native-maps` to use MapView component for geo location display 
+- `@react-native-async-storage/async-storage` to store messages offline
+- `@react-native-community/netinfo` to check on- or offline status
+- `react-navigation` to navigate between screens
+- `@react-navigation/native`
+- `@react-navigation/native-stack`
+
+## Features
 
 - A page where users can enter their name and choose a background color for the chat screen before joining the chat.
 - A page displaying the conversation, as well as an input field and submit button.
 - The chat must provide users with two additional communication features: sending images and location data.
 - Data gets stored online and offline.
 
-## Built with
-
-- React Native
-  - JSX
-  - JavaScript
-- Expo
-- Google Firebase / Firestore
-- Android Studio (for testing)
-
-## Interface
-
-![Screenshot of main view](https://github.com/tessa-tum/chat-app/blob/main/assets/scrnshot-start-screen-.PNG)
-
-## Project deliverables
-
-- Building Native Applications with JavaScript: Set up the development environment to work with React Native and Expo. Created the app’s layout using native UI components.
-- Chat UIs & Accessibility: Built the chat screen and the chat functionality with the Gifted Chat library.
-- Real-Time Applications & Data Storage: Authenticated users anonymously with Firebase. Stored conversations in the Firestore Database.
-- Storing Data on the Client-Side: Stored chats locally using asyncStorage for offline availability. Authenticated users and stored chat messages in Firestore as well as on the device when users are online.
-- Communication Features: Implemented image picking from the device’s library, taking pictures with the device’s camera app, storing images in Google Firebase Cloud Storage, and sending images via Gifted Chat. Implemented location sending in a map view via Gifted Chat. Applied accessibility considerations to app design and development.
-
-## Run the project
+## How to run
 
 - Create an - or use your - Expo account and download Expo Go on your mobile device
 - It's recommended to also set up a device emulator via Android Studio
