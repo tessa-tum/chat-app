@@ -8,7 +8,7 @@ A chat app for mobile devices using React Native. The app will provide users wit
 
 Mobile view of home page
 
-![Screenshot of main view](../hello-world/assets/screenshots-chat-app.png)
+![Screenshot of main view](https://github.com/tessa-tum/chat-app/blob/main/assets/screenshots-chat-app.png)
 
 ## Built with
 
